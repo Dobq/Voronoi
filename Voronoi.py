@@ -1,16 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 13 10:01:55 2022
-
-@author: dell
-"""
 
 #imports
 import tkinter as tk
 import tkinter.messagebox
 from tkinter.constants import SUNKEN
-from PIL import Image
-from numpy import zeros,uint8
+from PIL.Image import fromarray
+from numpy import array,uint8
 import random as ra
 from string import digits
 
@@ -62,19 +56,19 @@ def voronoi():
 ##############################################################################
 
         #function counting distances of points of form (X[i],Y[i]) from point (x,y)
-        def dists(x,y,X,Y):
-            #euclidean metric case (square root omitted)
-            if metric==0:
-                D=[(x-X[i])**2+(y-Y[i])**2 for i in range(n)]
-            #taxicab metric case
-            else:
-                D=[abs(x-X[i])+abs(y-Y[i]) for i in range(n)]
-            return D
+        #euclidean metric case (square root omitted)
+        if metric==0:
+            def dists(x,y,X,Y):
+                return [(x-X[i])**2+(y-Y[i])**2 for i in range(n)]
+        #taxicab metric case
+        else:
+            def dists(x,y,X,Y):
+                return [abs(x-X[i])+abs(y-Y[i]) for i in range(n)]
 
         #function returning index of closest point of the form (X[i],Y[i])
         if points==0:
             def cloind(x,y,X,Y):
-                D=dists(x,y,X,Y)              
+                D=dists(x,y,X,Y)
                 return D.index(min(D))
         #when "Show points" option is active, if distance to the point is very small, we're denoting it
         else:
@@ -90,23 +84,18 @@ def voronoi():
 
 ##############################################################################
 
-        #function transforming list of lists of [R,G,B]s to the array (needed to use Image.fromarray())
+        #function transforming list of lists of indices to array of [R,G,B]s
+        #(array is needed for fromarray function)
         def arrayRGB(L):
-            l=len(L) #(works for squares, what is our case)
-            data=zeros((l,l,3),dtype=uint8)
-            for i in range(l):
-                for j in range(l):
-                    data[i,j]=COLLIST[L[i][j]]
-            return data
+            return array([array(list(map(lambda j: COLLIST[j],L[i]))) for i in range(len(L))],dtype=uint8)
 
 ##############################################################################
 
         #function creating .png
         def graf(M):
             cod=''.join(ra.choices(digits,k=8))
-            img=Image.fromarray(arrayRGB(M),'RGB')
             print(cod) #print digits of new .png
-            img.save('voronoi_diag_'+cod+'.png')
+            fromarray(arrayRGB(M),'RGB').save('voronoi_diag_'+cod+'.png')
 
 ##############################################################################
 
@@ -114,11 +103,8 @@ def voronoi():
         X=[ra.randint(0, pxl-1) for i in range(n)]
         Y=[ra.randint(0, pxl-1) for i in range(n)]
 
-        #calculate color of each pixel
-        M=[[cloind(i,j,X,Y) for j in range(pxl)] for i in range(pxl)]
-
-        #make .png
-        graf(M)
+        #calculate color of each pixel and make .png
+        graf([[cloind(i,j,X,Y) for j in range(pxl)] for i in range(pxl)])
 
 ##############################################################################
 
@@ -225,3 +211,5 @@ generate_button.grid(row=7,column=1,columnspan=1,ipady=2,pady=2,padx=5)
 generate_button.config(bg='#DCD780')
 
 window.mainloop()
+
+##############################################################################
